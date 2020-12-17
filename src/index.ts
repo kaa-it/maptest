@@ -68,23 +68,51 @@ const GET_CM_IN_AREA = gql`
   }
 `;
 
+const GET_CM_ALL =gql`
+  query {
+    controlModules {
+      ... on ControlModules {
+        items {
+          id
+          mac
+          lat
+          lng
+          status
+          lastReceivedAt
+        }
+      }
+      ... on Error {
+        message
+      }
+    }
+  }
+`;
+
 async function initMap(): Promise<void> {
   const map = new google.maps.Map(
     document.getElementById("map") as HTMLElement,
     {
       zoom: 13,
-      center: { lat: 38.066743841880246, lng: 23.737678527832035 },
+      center: { lat: 58.502663568076194, lng: 49.47864532470703 },
       mapTypeId: "terrain",
     }
   );
 
   // Define the LatLng coordinates for the polygon's path.
+  // const triangleCoords = [
+  //   { lat: 38.0986317710631, lng: 23.791923522949222 },
+  //   { lat: 37.97789786422196, lng: 23.791923522949222 },
+  //   { lat: 37.97789786422196, lng: 23.627128601074222 },
+  //   { lat: 38.0986317710631, lng: 23.627128601074222 },
+  //   { lat: 38.0986317710631, lng: 23.791923522949222 },
+  // ];
+
   const triangleCoords = [
-    { lat: 38.0986317710631, lng: 23.791923522949222 },
-    { lat: 37.97789786422196, lng: 23.791923522949222 },
-    { lat: 37.97789786422196, lng: 23.627128601074222 },
-    { lat: 38.0986317710631, lng: 23.627128601074222 },
-    { lat: 38.0986317710631, lng: 23.791923522949222 },
+    {lat: 58.662477730689346, lng: 49.794158935546875},
+    {lat: 58.502663568076194, lng: 49.794158935546875},
+    {lat: 58.502663568076194, lng: 49.47864532470703},
+    {lat: 58.662477730689346, lng: 49.47864532470703},
+    {lat: 58.662477730689346, lng: 49.794158935546875}
   ];
 
   // Construct the polygon.
@@ -96,9 +124,10 @@ async function initMap(): Promise<void> {
     fillColor: "#FF0000",
     fillOpacity: 0.35,
   });
+
   bermudaTriangle.setMap(map);
 
-  const httpLink = createHttpLink({ uri: "https://localhost:443/query" });
+  const httpLink = createHttpLink({ uri: "http://staging.tvhelp.ru.com/query" });
   const authLink = new ApolloLink((operation, forward) => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -130,7 +159,7 @@ async function initMap(): Promise<void> {
         localStorage.setItem("token", credentials.accessToken);
 
         const cmRes = await apolloClient.query({
-          query: GET_CM_IN_AREA,
+          query: GET_CM_ALL,
           fetchPolicy: "network-only",
         });
         const typename = idx(
